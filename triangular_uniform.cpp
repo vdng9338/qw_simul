@@ -44,7 +44,7 @@ int ntriangles_y = ymax-ymin+1;
 int center[2] = {-xmin, -ymin};
 std::string prefix;
 int initialState = 0;
-vector<std::string> initialStateName = {"square", "shiftright", "shiftdl", "center", "center0", "center1", "center2", "vertical", "vertical0", "vertical1", "vertical2", "sinx", "siny", "sinx0", "siny0", "sinx1", "siny1", "sinx2", "siny2"};
+vector<std::string> initialStateName = {"square0", "shiftright0", "shiftdl0", "center", "center0", "center1", "center2", "vertical", "vertical0", "vertical1", "vertical2", "sinx", "siny", "sinx0", "siny0", "sinx1", "siny1", "sinx2", "siny2"};
 
 std::time_t now = time(0);
 std::tm *ltm = localtime(&now);
@@ -326,22 +326,19 @@ int main(int argc, char **argv)
     init_HQ();
     print_params();
     // Initial state
-    // A square
+    // A square (side 0)
     if(initialState == 0) {
         for(int x = xmin/5; x <= xmax/5; x++)
             for(int y = ymin/5; y <= ymax/5; y++)
-                for(int k = 0; k < 3; k++)
-                    grid[center[0]+x][center[1]+y][k] = 1;
+                grid[center[0]+x][center[1]+y][0] = 1;
         normalizeGrid();
     }
     // Shifted
     else if(initialState == 1)
-        for(int k = 0; k < 3; k++)
-            grid[center[0]+xmax/2-1][center[1]-1][k]=1/sqrt(3);
+        grid[center[0]+xmax/2-1][center[1]-1][0]=1;
     // Shifted (in another way)
     else if(initialState == 2)
-        for(int k = 0; k < 3; k++)
-            grid[center[0]+xmin/4+1][center[1]+ymin/4+1][k]=1/sqrt(3);
+        grid[center[0]+xmin/4+1][center[1]+ymin/4+1][0]=1;
     // Centered
     else if(initialState == 3)
         for(int k = 0; k < 3; k++)
