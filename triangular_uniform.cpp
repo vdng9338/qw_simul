@@ -90,8 +90,8 @@ inline int modulo(int a, int b) {
 
 void init_HQ() {
     sigmaz <<
-        0,1,
-        1,0;
+        1,0,
+        0,-1;
     sigmay <<
         0, -1.0i,
         1.0i, 0;
