@@ -338,7 +338,7 @@ grid_t applyCoins(grid_t grid, gen_coin_t gen_coin, bool multithread = true) {
     if(!multithread) {
         for(int x = -xspan; x < xspan; x++) {
             for(int y = -yspan; y < yspan; y++) {
-                if((x+y)%2)
+                if((x+y)%2==0)
                     continue;
                 for(int iside = 0; iside < 3; iside++) {
                     cd thisval = grid[x+center[0]][y+center[1]][iside];
@@ -614,25 +614,35 @@ int main(int argc, char **argv)
     // Shifted up-right at half
     else if(initialState == 5)
         for(int k = 0; k < 3; k++)
-            grid[center[0]+xspan/2][center[1]+yspan/2][k] = 1;
+            grid[center[0]+xspan/2][center[1]+yspan/2][k] = 1/sqrt(3);
     // Shifted up-right at third
     else if(initialState == 6)
         for(int k = 0; k < 3; k++)
-            grid[center[0]+xspan/3][center[1]+yspan/3][k] = 1;
+            grid[center[0]+xspan/3][center[1]+yspan/3][k] = 1/sqrt(3);
     // Sine, x dimension
     else if(initialState == 7) {
+        const double rxmin = (-xspan-.5)*sqrt(eps);
+        const double rxmax = (xspan-.5)*sqrt(eps);
         for(int x = -xspan; x < xspan; x++)
             for(int y = -yspan; y < yspan; y++)
-                for(int k = 0; k < 3; k++)
-                    grid[center[0]+x][center[1]+y][k] = sin(2*M_PI*(float)(x+xspan)/(2*xspan));
+                for(int k = 0; k < 3; k++) {
+                    double rx, ry;
+                    std::tie(rx, ry) = real_coords(k,x,y);
+                    grid[center[0]+x][center[1]+y][k] = sin(2*M_PI*(float)(rx-rxmin)/(rxmax-rxmin));
+                }
         normalizeGrid();
     }
     // Sine, y dimension
     else if(initialState == 8) {
+        const double rymin = (-yspan-.5)*sqrt(eps);
+        const double rymax = (yspan-.5)*sqrt(eps);
         for(int x = -xspan; x < xspan; x++)
             for(int y = -yspan; y < yspan; y++)
-                for(int k = 0; k < 3; k++)
-                    grid[center[0]+x][center[1]+y][k] = sin(2*M_PI*(float)(y+yspan)/(2*yspan));
+                for(int k = 0; k < 3; k++) {
+                    double rx, ry;
+                    std::tie(rx, ry) = real_coords(k,x,y);
+                    grid[center[0]+x][center[1]+y][k] = sin(2*M_PI*(float)(ry-rymin)/(rymax-rymin));
+                }
         normalizeGrid();
     }
     plot(0);
