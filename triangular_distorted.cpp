@@ -314,7 +314,7 @@ const int NUM_THREADS = 8;
 void applyCoinsPartial(grid_t &ngrid, grid_t &grid, gen_coin_t &gen_coin, int xmin, int xmax) {
     for(int x = xmin; x < xmax; x++) {
         for(int y = -yspan; y < yspan; y++) {
-            if((x+y)%2==0)
+            if((x+y)%2)
                 continue;
             for(int iside = 0; iside < 3; iside++) {
                 cd thisval = grid[x+center[0]][y+center[1]][iside];
@@ -338,7 +338,7 @@ grid_t applyCoins(grid_t grid, gen_coin_t gen_coin, bool multithread = true) {
     if(!multithread) {
         for(int x = -xspan; x < xspan; x++) {
             for(int y = -yspan; y < yspan; y++) {
-                if((x+y)%2==0)
+                if((x+y)%2)
                     continue;
                 for(int iside = 0; iside < 3; iside++) {
                     cd thisval = grid[x+center[0]][y+center[1]][iside];
