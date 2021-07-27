@@ -308,13 +308,13 @@ std::pair<double, double> real_coords(int iside, int x, int y, bool show = false
     return std::make_pair(sqrt(eps)*xcoord, sqrt(eps)*ycoord);
 }
 
-const int DELTAS[][2] = {{-1,0}, {1,0}, {0,1}};
+const int DELTAS[][2] = {{1,0}, {-1,0}, {0,-1}};
 const int NUM_THREADS = 8;
 
 void applyCoinsPartial(grid_t &ngrid, grid_t &grid, gen_coin_t &gen_coin, int xmin, int xmax) {
     for(int x = xmin; x < xmax; x++) {
         for(int y = -yspan; y < yspan; y++) {
-            if((x+y)%2)
+            if((x+y)%2==0)
                 continue;
             for(int iside = 0; iside < 3; iside++) {
                 cd thisval = grid[x+center[0]][y+center[1]][iside];
@@ -486,7 +486,7 @@ void step_walk(int step = -1) {
         grid = applyCoins(grid, gen_Ustar);
         grid = shift(grid);
         grid = applyCoins(grid, [](int i, double rx, double ry) {
-            Matrix2cd ret = gen_U(((i-1)%3+3)%3, rx, ry);
+            Matrix2cd ret = gen_U(modulo(i-1,3), rx, ry);
             return ret;
         });
     }
@@ -494,7 +494,7 @@ void step_walk(int step = -1) {
         grid = applyCoins(grid, gen_U);
         grid = shift(grid);
         grid = applyCoins(grid, [](int i, double rx, double ry) {
-            Matrix2cd ret = gen_Ustar(((i-1)%3+3)%3, rx, ry);
+            Matrix2cd ret = gen_Ustar(modulo(i-1,3), rx, ry);
             return ret;
         });
     }
@@ -506,7 +506,7 @@ void step_walk(int step = -1) {
         grid = applyCoins(grid, gen_Ubisstar);
         grid = shift(grid);
         grid = applyCoins(grid, [](int i, double rx, double ry) {
-            Matrix2cd ret = gen_Ubis(((i-1)%3+3)%3, rx, ry);
+            Matrix2cd ret = gen_Ubis(modulo(i-1,3), rx, ry);
             return ret;
         });
     }
@@ -514,7 +514,7 @@ void step_walk(int step = -1) {
         grid = applyCoins(grid, gen_Ubis);
         grid = shift(grid);
         grid = applyCoins(grid, [](int i, double rx, double ry) {
-            Matrix2cd ret = gen_Ubisstar(((i-1)%3+3)%3, rx, ry);
+            Matrix2cd ret = gen_Ubisstar(modulo(i-1,3), rx, ry);
             return ret;
         });
     }
