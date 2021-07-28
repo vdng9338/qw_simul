@@ -76,7 +76,7 @@ namespace tinycolormap
 
     enum class ColormapType
     {
-        Parula, Heat, Jet, Turbo, Hot, Gray, Magma, Inferno, Plasma, Viridis, Cividis, Github
+        Parula, Heat, Jet, Turbo, Hot, Gray, Magma, Inferno, Plasma, Viridis, Cividis, Github, GistHeat
     };
 
     struct Color
@@ -137,6 +137,7 @@ namespace tinycolormap
     inline Color GetViridisColor(double x);
     inline Color GetCividisColor(double x);
     inline Color GetGithubColor(double x);
+    inline Color GetGistHeatColor(double x);
 
 #if defined(TINYCOLORMAP_WITH_QT5) and defined(TINYCOLORMAP_WITH_EIGEN)
     inline QImage CreateMatrixVisualization(const Eigen::MatrixXd& matrix);
@@ -222,6 +223,8 @@ namespace tinycolormap
                 return GetCividisColor(x);
             case ColormapType::Github:
                 return GetGithubColor(x);
+            case ColormapType::GistHeat:
+                return GetGistHeatColor(x);
             default:
                 break;
         }
@@ -2163,6 +2166,16 @@ namespace tinycolormap
         };
 
         return internal::CalcLerp(x, data);
+    }
+
+    inline Color GetGistHeatColor(double x) {
+        x = internal::Clamp01(x);
+
+        double r = internal::Clamp01(1.5*x);
+        double g = internal::Clamp01(2*x-1);
+        double b = internal::Clamp01(4*x-3);
+        
+        return Color(r,g,b);
     }
 
 #if defined(TINYCOLORMAP_WITH_QT5) and defined(TINYCOLORMAP_WITH_EIGEN)
