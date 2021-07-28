@@ -259,7 +259,7 @@ void plot(int iGrid = -1) {
     double maxx = (xmax+.5);
     double miny = dy*(ymin-.5);
     double maxy = dy*(ymax+.5);
-    plt::imshow(imgrid, {minx, maxx, miny, maxy}, {{"origin", "lower"}, {"cmap", "viridis_r"}, {"vmin", "0.0"}, {"vmax", std::to_string(maxi)}});
+    plt::imshow(imgrid, {minx, maxx, miny, maxy}, {{"origin", "lower"}, {"cmap", "hot_r"}, {"vmin", "0.0"}, {"vmax", std::to_string(maxi)}});
     std::ostringstream filename;
     filename << prefix << "_" << iGrid << ".png";
     plt::save(prefix + "/" + filename.str());

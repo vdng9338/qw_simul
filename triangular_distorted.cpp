@@ -422,7 +422,7 @@ void plotSphere(int iGrid = -1) {
     for(int x = -xspan; x < xspan; x++)
         for(int y = -yspan; y < yspan; y++) {
             double val = std::max(0.0, std::min(1.0, colgrid[x+center[0]][y+center[1]]/maxcol));
-            tinycolormap::Color col = tinycolormap::GetViridisColor(1-val);
+            tinycolormap::Color col = tinycolormap::GetHotColor(1-val);
             for(int i = 0; i < 3; i++)
                 facecolors[x+center[0]][y+center[1]][i] = col.data[i];
         }
@@ -464,7 +464,7 @@ void plot(int iGrid = -1) {
     double maxx = sqrt(eps)*(xspan-.5);
     double miny = sqrt(eps)*dy*(-yspan-.5);
     double maxy = sqrt(eps)*dy*(yspan-.5);
-    plt::imshow(imgrid, {minx, maxx, miny, maxy}, {{"origin", "lower"}, {"cmap", "viridis_r"}, {"vmin", "0.0"}, {"vmax", std::to_string(maxi)}});
+    plt::imshow(imgrid, {minx, maxx, miny, maxy}, {{"origin", "lower"}, {"cmap", "hot_r"}, {"vmin", "0.0"}, {"vmax", std::to_string(maxi)}});
     if(showVectField)
         plotVectorField(-xspan*sqrt(eps), (xspan-1)*sqrt(eps), -yspan*sqrt(eps)*dy, (yspan-1)*sqrt(eps)*dy, 20);
     std::ostringstream filename;

@@ -394,7 +394,7 @@ void plot(int iGrid = -1) {
         if(maxi == 0.0)
             maxi = 1.0;
         maxi *= 0.6;
-        plt::scatter_colored(xlist, ylist, colorlist, 5, {{"cmap","viridis_r"}, {"vmin", "0"}, {"vmax", std::to_string(maxi)}});
+        plt::scatter_colored(xlist, ylist, colorlist, 5, {{"cmap","hot_r"}, {"vmin", "0"}, {"vmax", std::to_string(maxi)}});
     }
     else {
         fig = plt::figure_size(1000,1000);
@@ -423,7 +423,7 @@ void plot(int iGrid = -1) {
         double maxx = sqrt(eps)*(xmax+.5);
         double miny = sqrt(eps)*dy*(ymin-.5);
         double maxy = sqrt(eps)*dy*(ymax+.5);
-        plt::imshow(imgrid, {minx, maxx, miny, maxy}, {{"origin", "lower"}, {"cmap", "viridis_r"}, {"vmin", "0.0"}, {"vmax", std::to_string(maxi)}});
+        plt::imshow(imgrid, {minx, maxx, miny, maxy}, {{"origin", "lower"}, {"cmap", "hot_r"}, {"vmin", "0.0"}, {"vmax", std::to_string(maxi)}});
         plt::plot({0.0, maxy/tan(M_PI/3)}, {0.0, maxy}, {{"color","red"}});
         plt::plot({0.0, xmax*sqrt(eps)}, {0.0, 0.0}, {{"color","red"}});
         if(showVectField)
