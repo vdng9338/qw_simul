@@ -91,8 +91,8 @@ inline int modulo(int a, int b) {
 
 void init_HQ() {
     sigmaz <<
-        0,1,
-        1,0;
+        1,0,
+        0,-1;
     sigmay <<
         0, -1.0i,
         1.0i, 0;
@@ -186,13 +186,13 @@ std::pair<double, double> cone_coords(int iside, int x, int y, bool show = false
     return std::make_pair(r*cos(theta), r*sin(theta));
 }
 
-const int DELTAS[][2] = {{-1,0}, {1,0}, {0,1}};
+const int DELTAS[][2] = {{1,0}, {-1,0}, {0,-1}};
 const int NUM_THREADS = 8;
 
 void applyCoinsPartial(grid_t &ngrid, grid_t &grid, const Matrix2cd &coin, int loc_xmin, int loc_xmax) {
     for(int x = loc_xmin; x < loc_xmax; x++) {
         for(int y = ymin; y <= ymax; y++) {
-            if((x+y)%2 || (x>= -y && y>=0))
+            if((x+y)%2==0 || (x>= -y && y>=0))
                 continue;
             for(int iside = 0; iside < 3; iside++) {
                 int otherside = iside;
@@ -203,9 +203,11 @@ void applyCoinsPartial(grid_t &ngrid, grid_t &grid, const Matrix2cd &coin, int l
                     continue;
                 }
                 if(xo >= -yo && yo >= 0) {
-                    xo = -(x/2)-1;
-                    yo = x/2;
-                    otherside = 0;
+                    assert(iside == 0);
+                    assert(x == -y-1);
+                    xo = 2*y+1;
+                    yo = -1;
+                    otherside = 2;
                 }
                 cd otherval = grid[xo+center[0]][yo+center[1]][otherside];
                 Vector2cd vect;
@@ -223,7 +225,7 @@ grid_t applyCoins(grid_t grid, const Matrix2cd &coin, bool multithread = true) {
     if(!multithread) {
         for(int x = xmin; x <= xmax; x++) {
             for(int y = ymin; y <= ymax; y++) {
-                if((x+y)%2 || (x>= -y && y>=0)) // carré : on enlève un bout de 120°
+                if((x+y)%2==0 || (x>= -y && y>=0)) // carré : on enlève un bout de 120°
                     continue;
                 for(int iside = 0; iside < 3; iside++) {
                     int otherside = iside;
@@ -234,9 +236,11 @@ grid_t applyCoins(grid_t grid, const Matrix2cd &coin, bool multithread = true) {
                         continue;
                     }
                     if(xo >= -yo && yo >= 0) {
-                        xo = -(x/2)-1;
-                        yo = x/2;
-                        otherside = 0;
+                        assert(iside == 0);
+                        assert(x == -y-1);
+                        xo = 2*y+1;
+                        yo = -1;
+                        otherside = 2;
                     }
                     cd otherval = grid[xo+center[0]][yo+center[1]][otherside];
                     Vector2cd vect;
