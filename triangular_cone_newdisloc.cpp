@@ -39,13 +39,13 @@ int num_steps = 10000;
 double dy = sqrt(3);
 bool plotCone = true; // Set to true to plot the results in the cone coordinates
 int ymin = -200, ymax = 200;
-int xmin = 2*ymin-2, xmax = 2*ymax+2;
+int xmin = 3*ymin/2-ymin%2-1, xmax = 3*ymax/2+ymax%2+1;
 int ntriangles_x = xmax-xmin+1;
 int ntriangles_y = ymax-ymin+1;
 int center[2] = {-xmin, -ymin};
 std::string prefix;
 int initialState = 0;
-vector<std::string> initialStateName = {"square", "shiftright", "shiftdl", "center", "bothsides"};
+vector<std::string> initialStateName = {"square", "shifttop", "shiftdl", "center", "bothsides"};
 
 std::time_t now = time(0);
 std::tm *ltm = localtime(&now);
@@ -261,7 +261,7 @@ const int NUM_THREADS = 8;
 void applyCoinsPartial(grid_t &ngrid, grid_t &grid, const Matrix2cd &coin, int loc_xmin, int loc_xmax) {
     for(int x = loc_xmin; x < loc_xmax; x++) {
         for(int y = ymin; y <= ymax; y++) {
-            if((x+y)%2==0 || (x>= -y && y>=0))
+            if((x+y)%2==0 || (x>0 && y>(x-1)/3))
                 continue;
             for(int iside = 0; iside < 3; iside++) {
                 int otherside = iside;
@@ -297,7 +297,7 @@ grid_t applyCoins(grid_t grid, const Matrix2cd &coin, bool multithread = true) {
     if(!multithread) {
         for(int x = xmin; x <= xmax; x++) {
             for(int y = ymin; y <= ymax; y++) {
-                if((x+y)%2==0 || (x>= -y && y>=0)) // carré : on enlève un bout de 120°
+                if((x+y)%2==0 || (x>0 && y>(x-1)/3)) // dislocation : on enlève un bout de 60°
                     continue;
                 for(int iside = 0; iside < 3; iside++) {
                     int otherside = iside;
@@ -429,17 +429,17 @@ void plot(int iGrid = -1) {
 
     // Plot around dislocation line
     vector<double> xlist2, ylist2;
-    for(int x = 0; x <= xmax; x++) {
+    for(int y = 0; y <= ymax; y++) {
         vector<int> klist;
-        if((x+1)%2)
-            klist = {1, 2, 0};
+        if(y%2)
+            klist = {2, 0, 1};
         else
-            klist = {0, 2, 1};
+            klist = {0, 1, 2};
         for(int k : klist) {
             double rx, ry;
-            std::tie(rx, ry) = real_coords(k, x, -1);
-            xlist2.push_back(rx);
-            cd val = grid[x+center[0]][center[1]-1][k];
+            std::tie(rx, ry) = real_coords(k, 0, y);
+            xlist2.push_back(ry);
+            cd val = grid[center[0]][center[1]+y][k];
             double col = std::real(val*std::conj(val));
             ylist2.push_back(col);
         }
@@ -526,14 +526,14 @@ int main(int argc, char **argv)
         for(int x = xmin/5; x <= xmax/5; x++)
             for(int y = ymin/5; y <= ymax/5; y++)
                 for(int k = 0; k < 3; k++)
-                    if(x < -y || y < 0)
+                    if(x <= 0 || y <= (x-1)/3)
                         grid[center[0]+x][center[1]+y][k] = 1;
         normalizeGrid();
     }
     // Shifted
     else if(initialState == 1) {
         for(int k = 0; k < 3; k++)
-            grid[center[0]+xmax/2-1][center[1]-1][k]=1/sqrt(3);
+            grid[center[0]][center[1]+ymax/2-1][k]=1/sqrt(3);
     }
     // Shifted (in another way)
     else if(initialState == 2) {
@@ -542,7 +542,7 @@ int main(int argc, char **argv)
     }
     // Centered
     else if(initialState == 3) {
-        vector<vector<int> > centercoords = {{-1,0},{-1,-1},{0,-1},{1,-1}};
+        vector<vector<int> > centercoords = {{-1,-1},{-1,0},{0,-1},{0,0},{1,-1},{1,0}};
         for(vector<int> coord : centercoords)
             for(int k = 0; k < 3; k++)
                 grid[center[0]+coord[0]][center[1]+coord[1]][k]=1/sqrt(3*centercoords.size());
@@ -550,8 +550,8 @@ int main(int argc, char **argv)
     // Shifted, both sides of the line
     else if(initialState == 4) {
         for(int k=0; k<3; k++) {
-            grid[center[0]-10][center[1]+9][k] = 1/sqrt(6);
-            grid[center[0]+19][center[1]-1][k] = 1/sqrt(6);
+            grid[center[0]+10][center[1]+3][k] = 1/sqrt(6);
+            grid[center[0]][center[1]+6][k] = 1/sqrt(6);
         }
     }
     plot(0);
