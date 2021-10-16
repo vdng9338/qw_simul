@@ -37,15 +37,16 @@ typedef std::function<Matrix2cd(int, double, double)> gen_coin_t;
 
 // Settings here: epsilon and size (the factor before /sqrt(eps))
 // Other settings: 
-double eps = 0.01;
-int num_steps = 100000;
+double eps = 0.001;
+int num_steps = 10000;
 int deformation = 0;
 int initialState = 0;
-vector<std::string> initialStateName = {"center", "vertical", "center-side0", "center-side1", "center-side2", "shift-ur", "shift-ur3", "sinx", "siny"};
+vector<std::string> initialStateName = {"center", "vertical", "center-side0", "center-side1", "center-side2", "shift-ur", "shift-ur3", "sinx", "siny", "square"};
 double dy = sqrt(3);
 bool showVectField = false; // Set to true to show the vector field
 bool forceSphere = false;
-int xspan = (int)(10/sqrt(eps));
+int xspan = (int)(3/sqrt(eps));
+//int xspan = 200;
 int yspan = (int)(xspan/dy);
 int ntriangles_x = 2*xspan;
 int ntriangles_y = 2*yspan;
@@ -308,7 +309,7 @@ std::pair<double, double> real_coords(int iside, int x, int y, bool show = false
     return std::make_pair(sqrt(eps)*xcoord, sqrt(eps)*ycoord);
 }
 
-const int DELTAS[][2] = {{1,0}, {-1,0}, {0,-1}};
+const int DELTAS[][2] = {{-1,0}, {1,0}, {0,1}};
 const int NUM_THREADS = 8;
 
 void applyCoinsPartial(grid_t &ngrid, grid_t &grid, gen_coin_t &gen_coin, int xmin, int xmax) {
@@ -643,6 +644,14 @@ int main(int argc, char **argv)
                     std::tie(rx, ry) = real_coords(k,x,y);
                     grid[center[0]+x][center[1]+y][k] = sin(2*M_PI*(float)(ry-rymin)/(rymax-rymin));
                 }
+        normalizeGrid();
+    }
+    // A rectangle
+    else if(initialState == 9) {
+        for(int x = -xspan/5; x <= (xspan-1)/5; x++)
+            for(int y = -yspan/5; y <= (yspan-1)/5; y++)
+                for(int k = 0; k < 3; k++)
+                    grid[center[0]+x][center[1]+y][k] = 1;
         normalizeGrid();
     }
     plot(0);
