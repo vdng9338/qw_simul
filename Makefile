@@ -1,4 +1,4 @@
-EXEC=triangular_uniform triangular_distorted triangular_cone triangular_cone_sigmax triangular_cone_square_uniform
+EXEC=triangular_uniform triangular_distorted triangular_cone triangular_cone_sigmax triangular_cone_square_uniform triangular_cone_newdisloc
 HEADERS=tinycolormap.hpp matplotlibcpp.h
 
 all: $(EXEC)

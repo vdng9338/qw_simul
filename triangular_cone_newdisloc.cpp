@@ -144,7 +144,68 @@ std::pair<double, double> real_coords(int iside, int x, int y, bool show = false
     else
         dec = .5;
     double xcoord, ycoord;
-    if((x+y)%2==0) {
+    // Dislocation: particular case
+    if(x == 0 && y >= 0) { // Vertical line
+        if((x+y)%2 == 0) { // Tip down
+            if(iside == 0) {
+                xcoord = x-dec;
+                ycoord = (y+.5)*dy;
+            }
+            else if(iside == 1) {
+                xcoord = x;
+                ycoord = (y+.5)*dy;
+            }
+            else {
+                xcoord = x-dec;
+                ycoord = (y+.5+dec)*dy;
+            }
+        }
+        else { // Tip up
+            if(iside == 0) {
+                xcoord = x;
+                ycoord = (y+.5)*dy;
+            }
+            else if(iside == 1) {
+                xcoord = x-dec;
+                ycoord = (y+.5)*dy;
+            }
+            else {
+                xcoord = x-dec;
+                ycoord = (y+.5-dec)*dy;
+            }
+        }
+    }
+    else if(y >= 0 && (x == 3*y+1 || x == 3*y+2)) { // Diagonal line
+        if((x+y)%2 == 0) { // Tip down
+            if(iside == 0) {
+                xcoord = x-dec/2.;
+                ycoord = (y+.5-dec/2.)*dy;
+            }
+            else if(iside == 1) {
+                xcoord = x+dec;
+                ycoord = (y+.5)*dy;
+            }
+            else {
+                xcoord = x+dec/2.;
+                ycoord = (y+.5+dec/2.)*dy;
+            }
+        }
+        else { // Tip up
+            if(iside == 0) {
+                xcoord = x+dec+dec/2.;
+                ycoord = (y+.5-dec/2.)*dy;
+            }
+            else if(iside == 1) {
+                xcoord = x-dec/2.;
+                ycoord = (y+.5-dec/2.)*dy;
+            }
+            else {
+                xcoord = x;
+                ycoord = (y+.5-dec)*dy;
+            }
+        }
+    }
+    else if((x+y)%2==0) {
         if(iside == 0) {
             xcoord = x-dec;
             ycoord = (y+.5)*dy;
@@ -178,10 +239,10 @@ std::pair<double, double> real_coords(int iside, int x, int y, bool show = false
 std::pair<double, double> cone_coords(int iside, int x, int y, bool show = false) {
     double rx, ry;
     std::tie(rx, ry) = real_coords(iside, x, y, show);
-    double r = 4./6.*sqrt(rx*rx+ry*ry);
+    double r = 5./6.*sqrt(rx*rx+ry*ry);
     double theta_before = atan2(ry, rx);
     double theta_rotate = principal_measure(theta_before+4*M_PI/6.);
-    double theta = 6./4.*theta_rotate;
+    double theta = 6./5.*theta_rotate;
     //std::cerr << "theta " << theta_before*180/M_PI << " -> " << theta_rotate*180/M_PI << " -> " << theta*180/M_PI << std::endl;
     return std::make_pair(r*cos(theta), r*sin(theta));
 }
@@ -356,8 +417,8 @@ void plot(int iGrid = -1) {
         double miny = dy*(ymin-.5);
         double maxy = dy*(ymax+.5);
         plt::imshow(imgrid, {minx, maxx, miny, maxy}, {{"origin", "lower"}, {"cmap", "gist_heat_r"}, {"vmin", "0.0"}, {"vmax", std::to_string(maxi)}});
-        plt::plot({0.0, -maxy/tan(M_PI/3)}, {0.0, maxy}, {{"color","red"}});
-        plt::plot({0.0, maxx}, {0.0, 0.0}, {{"color","red"}});
+        plt::plot({0.0, 0.0}, {0.0, maxy}, {{"color","red"}});
+        plt::plot({0.0, maxx}, {0.0, maxx*std::tan(M_PI/6)}, {{"color","red"}});
     }
     std::ostringstream filename;
     filename << prefix << "_" << iGrid << ".png";
@@ -443,7 +504,7 @@ int main(int argc, char **argv)
     plotCone = (bool) std::atoi(argv[2]);
     std::ostringstream str;
     str <<
-        "simul_cone_squareu_" << initialStateName[initialState];
+        "simul_cone_newdisloc_" << initialStateName[initialState];
     if(plotCone)
         str << "_conecoord_";
     else
