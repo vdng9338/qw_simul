@@ -189,6 +189,14 @@ std::pair<double, double> cone_coords(int iside, int x, int y, bool show = false
 const int DELTAS[][2] = {{1,0}, {-1,0}, {0,-1}};
 const int NUM_THREADS = 8;
 
+/**
+ * For the new dislocation: 
+ * - triangles (0,y), y >= 0, have triangle (3*y//2 + y%2 + 1, y//2) as a neighbor. 
+ *   Since we only consider tip up triangles, with (x+y)%2 == 1, we simply need to know that
+ *   triangles (0, y), y >= 0 and y odd, have side 2 of triangle (3*(y-1)/2+2, (y-1)/2) as a neighbor at side 0.
+ * - triangles (3y+1, y), y >= 0 have side 1 of triangle (0, 2y) as a neighbor at side 1.
+ * 
+ */
 void applyCoinsPartial(grid_t &ngrid, grid_t &grid, const Matrix2cd &coin, int loc_xmin, int loc_xmax) {
     for(int x = loc_xmin; x < loc_xmax; x++) {
         for(int y = ymin; y <= ymax; y++) {
@@ -202,12 +210,15 @@ void applyCoinsPartial(grid_t &ngrid, grid_t &grid, const Matrix2cd &coin, int l
                     ngrid[x+center[0]][y+center[1]][iside] = thisval;
                     continue;
                 }
-                if(xo >= -yo && yo >= 0) {
-                    assert(iside == 0);
-                    assert(x == -y-1);
-                    xo = 2*y+1;
-                    yo = -1;
+                if(x == 0 && y >= 0 && iside == 0) {
+                    xo = 3*(y-1)/2+2;
+                    yo = (y-1)/2;
                     otherside = 2;
+                }
+                else if(y >= 0 && x == 3*y+1 && iside == 1) {
+                    xo = 0;
+                    yo = 2*y;
+                    otherside = 1;
                 }
                 cd otherval = grid[xo+center[0]][yo+center[1]][otherside];
                 Vector2cd vect;
@@ -235,12 +246,15 @@ grid_t applyCoins(grid_t grid, const Matrix2cd &coin, bool multithread = true) {
                         ngrid[x+center[0]][y+center[1]][iside] = thisval;
                         continue;
                     }
-                    if(xo >= -yo && yo >= 0) {
-                        assert(iside == 0);
-                        assert(x == -y-1);
-                        xo = 2*y+1;
-                        yo = -1;
+                    if(x == 0 && y >= 0 && iside == 0) {
+                        xo = 3*(y-1)/2+2;
+                        yo = (y-1)/2;
                         otherside = 2;
+                    }
+                    else if(y >= 0 && x == 3*y+1 && iside == 1) {
+                        xo = 0;
+                        yo = 2*y;
+                        otherside = 1;
                     }
                     cd otherval = grid[xo+center[0]][yo+center[1]][otherside];
                     Vector2cd vect;
