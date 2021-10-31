@@ -35,7 +35,7 @@ typedef vector<vector<vector<cd>>> grid_t;
 typedef std::function<Matrix2cd(int, double, double)> gen_coin_t;
 
 // Settings here
-int num_steps = 10000;
+int num_steps = 1000;
 double dy = sqrt(3);
 bool plotCone = true; // Set to true to plot the results in the cone coordinates
 int ymin = -200, ymax = 200;
@@ -45,7 +45,7 @@ int ntriangles_y = ymax-ymin+1;
 int center[2] = {-xmin, -ymin};
 std::string prefix;
 int initialState = 0;
-vector<std::string> initialStateName = {"square", "shifttop", "shiftdl", "center", "bothsides"};
+vector<std::string> initialStateName = {"square", "shifttop", "shiftdl", "center", "bothsides", "everywhere"};
 
 std::time_t now = time(0);
 std::tm *ltm = localtime(&now);
@@ -122,6 +122,10 @@ inline double principal_measure(const double theta) {
     if(ret > M_PI)
         ret -= 2*M_PI;
     return ret;
+}
+
+inline double sqmodulus(const std::complex<double> comp) {
+    return std::real(comp*std::conj(comp));
 }
 
 grid_t shift(grid_t grid) {
@@ -243,7 +247,6 @@ std::pair<double, double> cone_coords(int iside, int x, int y, bool show = false
     double theta_before = atan2(ry, rx);
     double theta_rotate = principal_measure(theta_before+4*M_PI/6.);
     double theta = 6./5.*theta_rotate;
-    //std::cerr << "theta " << theta_before*180/M_PI << " -> " << theta_rotate*180/M_PI << " -> " << theta*180/M_PI << std::endl;
     return std::make_pair(r*cos(theta), r*sin(theta));
 }
 
@@ -256,7 +259,6 @@ const int NUM_THREADS = 8;
  *   Since we only consider tip up triangles, with (x+y)%2 == 1, we simply need to know that
  *   triangles (0, y), y >= 0 and y odd, have side 2 of triangle (3*(y-1)/2+2, (y-1)/2) as a neighbor at side 0.
  * - triangles (3y+1, y), y >= 0 have side 1 of triangle (0, 2y) as a neighbor at side 1.
- * 
  */
 void applyCoinsPartial(grid_t &ngrid, grid_t &grid, const Matrix2cd &coin, int loc_xmin, int loc_xmax) {
     for(int x = loc_xmin; x < loc_xmax; x++) {
@@ -267,7 +269,7 @@ void applyCoinsPartial(grid_t &ngrid, grid_t &grid, const Matrix2cd &coin, int l
                 int otherside = iside;
                 cd thisval = grid[x+center[0]][y+center[1]][iside];
                 int xo = x + DELTAS[iside][0], yo = y + DELTAS[iside][1];
-                if(xo > xmax || xo < xmin || yo > ymax || yo < ymin) { // pas de propagation aux bords
+                if(xo > xmax || xo < xmin || yo > ymax || yo < ymin) { // No propagation at borders
                     ngrid[x+center[0]][y+center[1]][iside] = thisval;
                     continue;
                 }
@@ -297,13 +299,13 @@ grid_t applyCoins(grid_t grid, const Matrix2cd &coin, bool multithread = true) {
     if(!multithread) {
         for(int x = xmin; x <= xmax; x++) {
             for(int y = ymin; y <= ymax; y++) {
-                if((x+y)%2==0 || (x>0 && y>(x-1)/3)) // dislocation : on enlève un bout de 60°
+                if((x+y)%2==0 || (x>0 && y>(x-1)/3)) // dislocation : remove a 60-degree part of the lattie
                     continue;
                 for(int iside = 0; iside < 3; iside++) {
                     int otherside = iside;
                     cd thisval = grid[x+center[0]][y+center[1]][iside];
                     int xo = x + DELTAS[iside][0], yo = y + DELTAS[iside][1];
-                    if(xo > xmax || xo < xmin || yo > ymax || yo < ymin) { // pas de propagation aux bords
+                    if(xo > xmax || xo < xmin || yo > ymax || yo < ymin) { // No propagation at borders
                         ngrid[x+center[0]][y+center[1]][iside] = thisval;
                         continue;
                     }
@@ -350,6 +352,14 @@ grid_t applyCoins(grid_t grid, const Matrix2cd &coin, bool multithread = true) {
 
 void plot(int iGrid = -1) {
     PyObject *fig;
+    // Code to write the plot as Python matplotlib instructions. Use this if there are too many visible points to plot, since matplotlib-cpp segfaults in that case
+    /*std::ostringstream scriptpath;
+    scriptpath << prefix << "/script_" << iGrid << ".py";
+    std::ofstream pyscript(scriptpath.str());
+    pyscript << "from matplotlib import pyplot as plt\n";
+    pyscript << "plt.figure(figsize=(10,10))\n";
+    pyscript << "plt.xlim(" << xmin << "," << xmax << ")\n";
+    pyscript << "plt.ylim(" << ymin*dy << "," << ymax*dy << ")\n";*/
     if(plotCone) {
         fig = plt::figure_size(1000,1000);
         plt::xlim(xmin, xmax);
@@ -387,6 +397,18 @@ void plot(int iGrid = -1) {
         if(maxi == 0.0)
             maxi = 1.0;
         maxi *= 0.6;
+        // Continued
+        /*
+        pyscript << "plt.scatter([";
+        for(double d : xlist)
+            pyscript << d << ",";
+        pyscript << "],[";
+        for(double d : ylist)
+            pyscript << d << ",";
+        pyscript << "], c=[";
+        for(double c : colorlist)
+            pyscript << c << ",";
+        pyscript << "], cmap=\"gist_heat_r\", vmin=0, vmax=" << maxi << ")\n";*/
         plt::scatter_colored(xlist, ylist, colorlist, 1, {{"cmap","gist_heat_r"}, {"vmin", "0"}, {"vmax", std::to_string(maxi)}});
     }
     else {
@@ -420,6 +442,10 @@ void plot(int iGrid = -1) {
         plt::plot({0.0, 0.0}, {0.0, maxy}, {{"color","red"}});
         plt::plot({0.0, maxx}, {0.0, maxx*std::tan(M_PI/6)}, {{"color","red"}});
     }
+    // Continued
+    /*pyscript << "plt.savefig(\"" << prefix << "_" << iGrid << ".png\")\n";
+    pyscript.flush();
+    pyscript.close();*/
     std::ostringstream filename;
     filename << prefix << "_" << iGrid << ".png";
     plt::save(prefix + "/" + filename.str());
@@ -452,6 +478,8 @@ void plot(int iGrid = -1) {
     plt::close();
 }
 
+vector<double> dislocAmplitudes;
+
 void step_walk(int step = -1) {
     std::cerr << "Begin step " << step << std::endl;
     grid = applyCoins(grid, U);
@@ -460,8 +488,24 @@ void step_walk(int step = -1) {
         grid = shift(grid);
     }
     grid = applyCoins(grid, U.adjoint());
+    double sumDisloc = 0;
+    for(int y = 0; y <= ymax; y++)
+        for(int k = 0; k < 3; k++)
+            sumDisloc += sqmodulus(grid[center[0]][y+center[1]][k]);
+    for(int y = 0; y <= ymax && 3*y+1 <= xmax; y++)
+        for(int k = 0; k < 3; k++)
+            sumDisloc += sqmodulus(grid[center[0]+3*y+1][center[1]+y][k]);
+    dislocAmplitudes.push_back(sumDisloc);
     std::cerr << "Total amplitude: " << sumAmplitudes() << "\n";
     std::cerr << "End step " << step << std::endl;
+}
+
+void plotDislocAmplitude() {
+    std::cerr << "Plotting dislocation amplitude" << std::endl;
+    plt::plot(dislocAmplitudes);
+    plt::save(prefix + "/" + prefix + "_disloc.png");
+    plt::clf();
+    plt::close();
 }
 
 void print_params() {
@@ -554,10 +598,21 @@ int main(int argc, char **argv)
             grid[center[0]][center[1]+6][k] = 1/sqrt(6);
         }
     }
+    // Everywhere, uniformly
+    else if(initialState == 5) {
+        for(int x = xmin; x <= xmax; x++)
+            for(int y = ymin; y <= ymax; y++)
+                if(x<=0 || y <= (x-1)/3)
+                    for(int k = 0; k < 3; k++)
+                        grid[center[0]+x][center[1]+y][k] = 1;
+        normalizeGrid();
+    }
     plot(0);
     for(int i = 0; i < num_steps; i++) {
         step_walk(i);
         if((i+1)%10 == 0)
             plot(i+1);
     }
+    plotDislocAmplitude();
+
 }
