@@ -121,13 +121,13 @@ vector<std::string> deform_name = {"ident", "conic", "3fold", "3fold-x", "3fold-
 
 Matrix2cd lamb(double rx, double ry) {
     Matrix2cd ret;
-    // Identité
+    // Identity
     if(deformation == 0) {
         ret <<
             1, 0,
             0, 1;
     }
-    // Conique : pas de moyen simple d'éviter la singularité
+    // Conic: no simple means to avoid the singularity at the center
     else if(deformation == 1) {
         if(rx == 0) {
             if(ry >= 0) {
@@ -149,7 +149,7 @@ Matrix2cd lamb(double rx, double ry) {
                 sign(rx)*ry/rx/sqrt(1+sq(2*rx+2*ry*ry/rx)+sq(ry/rx));
         }
     }
-    else if(deformation == 2) { // 10-fold expansion of space
+    else if(deformation == 2) { // 3-fold expansion of space
         ret <<
             3, 0,
             0, 3;
@@ -164,8 +164,8 @@ Matrix2cd lamb(double rx, double ry) {
             1, 0,
             0, 3;
     }
-    // Sphérique
-    else if(deformation == 5) { // Sphérique, coordonnées tournantes (singularité en (0,0))
+    // Spherical
+    else if(deformation == 5) { // Spherical, "rotating" coordinates (singularity in (0,0))
         if(rx == 0 && ry == 0) {
             ret <<
                 1, 0,
@@ -184,7 +184,7 @@ Matrix2cd lamb(double rx, double ry) {
                 vect2(0), vect2(1);
         }
     }
-    else if(deformation == 6) { // Sphère, sans singularité
+    else if(deformation == 6) { // Spherical, without singularity
         double den = sq(rx*rx+ry*ry+4);
         Vector3f partialx(
             4*(-rx*rx+ry*ry+4)/den,
@@ -200,7 +200,7 @@ Matrix2cd lamb(double rx, double ry) {
             1/partialx.norm(), 0,
             0, 1/partialy.norm();
     }
-    else if(deformation == 7) {
+    else if(deformation == 7) { // A cone
         double xi = sqrt(rx*rx+ry*ry);
         if(xi <= 1e-10)
             return Matrix2cd::Identity();
@@ -222,7 +222,7 @@ Matrix2cd lamb(double rx, double ry) {
             vect1(0), vect2(0),
             vect1(1), vect2(1);
     }
-    else if(deformation == 8) {
+    else if(deformation == 8) { // Zero for y
         ret <<
             1, 0,
             0, 0;
@@ -278,7 +278,7 @@ std::pair<double, double> real_coords(int iside, int x, int y, bool show = false
     else
         dec = .5;
     double xcoord, ycoord;
-    if((x+y)%2==0) {
+    if((x+y)%2 == 0) { // Tip down
         if(iside == 0) {
             xcoord = x-dec;
             ycoord = y*dy;
@@ -292,7 +292,7 @@ std::pair<double, double> real_coords(int iside, int x, int y, bool show = false
             ycoord = (y+dec)*dy;
         }
     }
-    else {
+    else { // Tip up
         if(iside == 0) {
             xcoord = x+dec;
             ycoord = y*dy;
@@ -315,7 +315,7 @@ const int NUM_THREADS = 8;
 void applyCoinsPartial(grid_t &ngrid, grid_t &grid, gen_coin_t &gen_coin, int xmin, int xmax) {
     for(int x = xmin; x < xmax; x++) {
         for(int y = -yspan; y < yspan; y++) {
-            if((x+y)%2)
+            if((x+y)%2) // Only consider triangles labeled 0 (tip down), to process each edge once
                 continue;
             for(int iside = 0; iside < 3; iside++) {
                 cd thisval = grid[x+center[0]][y+center[1]][iside];
@@ -339,7 +339,7 @@ grid_t applyCoins(grid_t grid, gen_coin_t gen_coin, bool multithread = true) {
     if(!multithread) {
         for(int x = -xspan; x < xspan; x++) {
             for(int y = -yspan; y < yspan; y++) {
-                if((x+y)%2)
+                if((x+y)%2) // Only consider triangles labeled 0 (tip down), to process each edge once
                     continue;
                 for(int iside = 0; iside < 3; iside++) {
                     cd thisval = grid[x+center[0]][y+center[1]][iside];

@@ -136,7 +136,7 @@ std::pair<double, double> real_coords(int iside, int x, int y, bool show = false
     else
         dec = .5;
     double xcoord, ycoord;
-    if((x+y)%2==0) {
+    if((x+y)%2 == 0) { // Tip down
         if(iside == 0) {
             xcoord = x-dec;
             ycoord = (y+.5)*dy;
@@ -150,7 +150,7 @@ std::pair<double, double> real_coords(int iside, int x, int y, bool show = false
             ycoord = (y+.5+dec)*dy;
         }
     }
-    else {
+    else { // Tip up
         if(iside == 0) {
             xcoord = x+dec;
             ycoord = (y+.5)*dy;
@@ -173,7 +173,7 @@ const int NUM_THREADS = 8;
 void applyCoinsPartial(grid_t &ngrid, grid_t &grid, const Matrix2cd &coin, int loc_xmin, int loc_xmax) {
     for(int x = loc_xmin; x < loc_xmax; x++) {
         for(int y = ymin; y <= ymax; y++) {
-            if((x+y)%2==0)
+            if((x+y)%2 == 0) // Only consider triangles labeled 1 (tip up), to process each edge once
                 continue;
             for(int iside = 0; iside < 3; iside++) {
                 int otherside = iside;
@@ -195,7 +195,7 @@ grid_t applyCoins(grid_t grid, const Matrix2cd &coin, bool multithread = true) {
     if(!multithread) {
         for(int x = xmin; x <= xmax; x++) {
             for(int y = ymin; y <= ymax; y++) {
-                if((x+y)%2==0)
+                if((x+y)%2 == 0) // Only consider triangles labeled 1 (tip up), to process each edge once
                     continue;
                 for(int iside = 0; iside < 3; iside++) {
                     int otherside = iside;
@@ -343,13 +343,13 @@ int main(int argc, char **argv)
     else if(initialState == 3)
         for(int k = 0; k < 3; k++)
             grid[center[0]][center[1]][k]=1/sqrt(3);
-    // Centered-ish, side 0
+    // Nearly centered, side 0
     else if(initialState == 4)
         grid[center[0]][center[1]][0] = 1;
-    // Centered-ish, side 1
+    // Nearly centered, side 1
     else if(initialState == 5)
         grid[center[0]][center[1]][1] = 1;
-    // Centered-ish, side 0
+    // Nearly centered, side 2
     else if(initialState == 6)
         grid[center[0]][center[1]][2] = 1;
     // Vertical
